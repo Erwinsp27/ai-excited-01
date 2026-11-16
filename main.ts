@@ -44,7 +44,22 @@ function loadEntry(entry: URL): Buffer {
       `${FILE_NAME} is ${size} bytes, over the gate's ${BYTE_LIMIT}-byte limit`,
     );
   }
-  return readFileSync(entry);
+  const bytes = readFileSync(entry);
+  // The gate tells PNG from JPEG by the first bytes, not the extension,
+  // so refuse anything that is neither before the grader sees it.
+  const isJpeg = bytes[0] === 0xff && bytes[1] === 0xd8 && bytes[2] === 0xff;
+  const isPng =
+    bytes[0] === 0x89 &&
+    bytes[1] === 0x50 &&
+    bytes[2] === 0x4e &&
+    bytes[3] === 0x47;
+  if (!isJpeg && !isPng) {
+    throw new Error(
+      `${FILE_NAME} is not a JPEG or PNG image ` +
+        `(first bytes: ${bytes.subarray(0, 4).toString('hex')})`,
+    );
+  }
+  return bytes;
 }
 
 // Copy the image's bytes to the output directory, creating it if needed.
@@ -52,7 +67,17 @@ function handOver(): void {
   const image = loadEntry(locateEntry());
   const targetDir = resolveTargetDir();
   mkdirSync(targetDir, { recursive: true });
-  writeFileSync(join(targetDir, FILE_NAME), image);
+  const target = join(targetDir, FILE_NAME);
+  writeFileSync(target, image);
+  // Prove the handover landed whole: the grader's two runs must agree
+  // byte for byte, so a short or torn write is caught here, not by it.
+  const written = readFileSync(target);
+  if (!written.equals(image)) {
+    throw new Error(
+      `${FILE_NAME} was not written whole: ${written.length} bytes on disk, ` +
+        `${image.length} bytes expected`,
+    );
+  }
   console.log(`wrote ${FILE_NAME} (${image.length} bytes)`);
 }
 
