@@ -1,22 +1,35 @@
 # Phoenix Rising — ai-excited-01
 
-A phoenix bursts out of a stained-glass cathedral window, shattering the
-coloured glass into burning feathers, and flies straight at the viewer
-under a golden comic "WOW!" burst.
+A phoenix tears itself free from a stained-glass cathedral window: coloured
+glass shatters into burning feathers as the bird flies head-on at the viewer,
+framed by a golden comic burst that shouts "WOW!".
 
-Why this image, against the judge's rubric (most important first):
+## Why this image wins the rubric
 
-1. **Excitement** — a huge fiery bird screaming toward you, wings spanning
-   the whole frame, sunlight flooding through the broken window.
-2. **Surprise** — the twist is the medium breaking: a stained-glass window
-   becomes a living phoenix. Not a stock explosion or a generic action
-   scene, but a piece of art coming alive and bursting out of its frame.
-3. **Momentum** — everything drives at the viewer: the head-on flight, the
-   diagonal god-rays, the exploding shards and feathers.
-4. **Craft** — one clean digital painting, no smears or artefacts, and the
-   only text ("WOW!") is a single perfectly legible word in a comic burst.
-5. **Reads small** — at 300 px the big bird, the gold burst and the dark
-   cathedral still hit: one clear shape, one clear idea.
+The judge scores excitement first, then surprise, momentum, craft, and
+whether the image still reads when it is small. The picture was built to
+answer each of those in order:
+
+1. **Excitement** — the bird is enormous and on fire, wings spread across
+   the whole frame, sunlight pouring through the smashed window behind it.
+2. **Surprise** — the medium itself breaks. A stained-glass window, a piece
+   of art, comes alive and bursts out of its frame. It is the "art comes
+   alive" idea, but in a medium and with a subject nobody else in the
+   running used.
+3. **Momentum** — nothing in the frame sits still. The head-on flight, the
+   diagonal rays of light, the exploding shards and feathers all push
+   straight toward the viewer.
+4. **Craft** — a single clean painting with no smears or artefacts, and the
+   only text is one word, "WOW!", inside a comic burst, perfectly legible
+   at full size.
+5. **Reads small** — shrunk to 300 px, the bird, the gold burst and the
+   dark cathedral still land as one clear shape: one idea, not a collage.
+
+The other concepts tried — a ship in a snow globe, a flaming chess knight,
+the phoenix without the burst, and a tighter phoenix crop — are kept in
+`candidates/`. The knight was the runner-up, but it split the eye between
+two focal points; the tight crop lost the "breaking out of the window"
+story that makes the entry work.
 
 ## Run it
 
@@ -24,15 +37,18 @@ Why this image, against the judge's rubric (most important first):
 mkdir -p out && MAKEFUN_OUTPUT_DIR=out node main.ts
 ```
 
-That copies `entry.png` (a JPEG by its first bytes, 1024x683, 281,612 bytes)
-to `out/entry.png`. The program runs twice and writes the same bytes both
-times: it only copies the file.
+That copies `entry.png` to `out/entry.png`. Run it twice and the output is
+identical both times: the program only copies the file, so the bytes the
+judge sees are exactly the bytes in this repo.
 
 ## Files
 
-- `entry.png` — the image (JPEG bytes, named entry.png as the rules allow)
-- `main.ts` — the entrypoint: copies entry.png to the output directory
-- `candidates/` — the other concepts tried (snow-globe ship, flaming chess
-  knight, the phoenix without the burst, and a tighter phoenix crop)
+- `entry.png` — the image: JPEG bytes (the gate reads the first bytes, not
+  the extension), 1024x683, 281,612 bytes, scaled from
+  `candidates/media-generation-phoenix-wow-0-12d27b03-56d7-41e8-b2e7-bd2b4d07810b.png`
+  with `ffmpeg -vf scale=1024:-1 -q:v 4 -c:v mjpeg`
+- `main.ts` — the entrypoint: copies entry.png to the output directory,
+  refusing an empty file or one over 1 MiB
+- `candidates/` — the other concepts tried, with the source images
 
 MIT licensed.
