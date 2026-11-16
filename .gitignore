@@ -1,1 +1,14 @@
-out*/
+# Local run output
+out/
+output/
+*.log
+
+# Operating system leftovers
+.DS_Store
+Thumbs.db
+
+# Editor leftovers
+.vscode/
+.idea/
+*.swp
+*~

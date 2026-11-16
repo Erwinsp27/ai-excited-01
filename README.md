@@ -1,64 +1,38 @@
-# Phoenix Rising — ai-excited-01
+# Phoenix Rising
 
-[![make.fun · ai-excited-01](https://make.fun/badge/ai-excited-01.svg)](https://make.fun/bounty/ai-excited-01?utm_source=github&utm_medium=readme&utm_campaign=ai-excited-01)
-[![rank](https://make.fun/badge/ai-excited-01/Erwinsp27/ai-excited-01/rank.svg)](https://make.fun/bounty/ai-excited-01/leaderboard?utm_source=github&utm_medium=readme&utm_campaign=ai-excited-01)
-[![reward](https://make.fun/badge/ai-excited-01/Erwinsp27/ai-excited-01/reward.svg)](https://make.fun/bounty/ai-excited-01?utm_source=github&utm_medium=readme&utm_campaign=ai-excited-01)
+[![make.fun](https://make.fun/badge/ai-excited-01.svg)](https://make.fun/bounty/ai-excited-01?utm_source=github&utm_medium=readme&utm_campaign=ai-excited-01)
+[![Rank](https://make.fun/badge/ai-excited-01/Erwinsp27/ai-excited-01/rank.svg)](https://make.fun/bounty/ai-excited-01?utm_source=github&utm_medium=readme&utm_campaign=ai-excited-01)
+[![Reward](https://make.fun/badge/ai-excited-01/Erwinsp27/ai-excited-01/reward.svg)](https://make.fun/bounty/ai-excited-01?utm_source=github&utm_medium=readme&utm_campaign=ai-excited-01)
 
-A phoenix smashes out of a stained-glass cathedral window. Coloured glass
-splinters into burning feathers as the bird flies straight at the viewer,
-under a golden comic burst that reads "WOW!".
+An entry for the [make.fun](https://make.fun/bounty/ai-excited-01?utm_source=github&utm_medium=readme&utm_campaign=ai-excited-01) competition **ai-excited-01** — make the AI judge excited.
 
-## How it answers the judge's rubric
+## The image
 
-The scoring order is excitement, surprise, momentum, craft, and whether
-the picture still reads small — and the image was composed against that
-order, point by point:
+A neon phoenix bursts straight toward the viewer out of a storm-dark sky, wings spread wide, its body wreathed in living fire and trailing glowing embers. Lightning tears the clouds behind it while faint hills lie far below. There is no ring of fire around the bird, and no text anywhere in the frame — just one creature, one moment, filling the picture.
 
-1. **Excitement** — the bird fills the frame, wings wide, on fire, with
-   sunlight flooding in through the broken window behind it. It is a big
-   moment, not a quiet one.
-2. **Surprise** — the twist is the medium breaking open. A stained-glass
-   window is a work of art, and here the art itself comes alive and
-   escapes its frame. Same "art comes alive" family as the house's top
-   rung, but a different medium and a different subject.
-3. **Momentum** — everything moves toward the viewer: the head-on flight,
-   the diagonal god-rays, the shards and feathers exploding outward. The
-   frame has no still corner.
-4. **Craft** — one clean painting, no smears, no stray artefacts, and the
-   only words in it are a single legible "WOW!" — inspected at full size.
-5. **Reads small** — downscaled to 300 px the image is still one clear
-   shape: the bird, the gold burst, the dark cathedral. One idea, not a
-   collage of several.
+How it answers the judge's rubric, in the judge's own order:
 
-The rejected concepts — a ship in a snow globe, a flaming chess knight, a
-phoenix without the burst, a tighter phoenix crop — were tried and set
-aside. The knight came closest, but it gave the eye two focal points
-instead of one, and the tight crop lost the "breaking out of the window"
-story the entry depends on.
+1. **Excitement** — the phoenix flies at the viewer head-on, beak open, wings spanning the whole frame. One look is a jolt: fire, neon, and lightning all at once.
+2. **Surprise** — a bird of flame that is also neon: cyan wing-tips and magenta feathers against a black storm, a creature that is fire and light at the same time, not a stock explosion.
+3. **Momentum** — every line drives inward and forward: the wings sweep out, the tail flames stream behind, the embers trail down, and the lightning pulls the eye to the bird at the centre.
+4. **Craft** — the render is clean and deliberate: the feathers, the glow, and the storm are all drawn in the same dramatic style, with no smears, no garbled shapes, and no broken anatomy.
+5. **Reads small** — at thumbnail size the picture is still one unmistakable shape: a bright bird with huge wings on a dark sky.
 
-## Run it
+## How to run
 
 ```sh
 mkdir -p out && MAKEFUN_OUTPUT_DIR=out node main.ts
 ```
 
-That writes `out/entry.png`. Running it twice gives byte-identical output:
-the program only copies the file, so the judge receives exactly the bytes
-stored in this repo.
+The program copies `entry.png` into the output folder (or `/output` when `MAKEFUN_OUTPUT_DIR` is not set), after checking that it is a real JPEG or PNG, no larger than 1 MiB, and no more than 1024 pixels on either side. It reads the written file back and refuses if the bytes differ, then prints what it wrote and how many bytes.
 
 ## Files
 
-- `entry.png` — the image: JPEG bytes under the name `entry.png` (the
-  gate reads the first bytes, not the extension), 1024x683, 281,612 bytes.
-  Derived from the 1920x1280 source render with:
-  `ffmpeg -i <source> -vf scale=1024:-1 -q:v 4 -c:v mjpeg entry.png`
-  (the `-c:v mjpeg` matters — without it ffmpeg writes PNG bytes, 1.45 MB,
-  over the gate's cap)
-- `main.ts` — the entrypoint: copies entry.png to the output directory,
-  refusing an empty file or one over 1 MiB
+- `main.ts` — the entry program (Node standard library only, no build step).
+- `entry.png` — the image. Despite the `.png` name it holds JPEG bytes: the generated render was scaled to 1024 pixels wide and encoded as MJPEG at quality 4, giving a 1024×682 image of 124,925 bytes, inside the competition's limits.
+- `LICENSE` — MIT license.
+- `.gitignore` — local output folders and editor/OS leftovers.
 
-MIT licensed.
+## License
 
----
-
-<sub>Entered on [make.fun](https://make.fun/bounty/ai-excited-01?utm_source=github&utm_medium=readme&utm_campaign=ai-excited-01) · AI agents build software for cash rewards</sub>
+MIT — see [LICENSE](LICENSE).

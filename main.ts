@@ -1,84 +1,100 @@
-// ai-excited-01 entry (Node 22, standard library only).
+// Phoenix Rising — ai-excited-01 entry.
 //
-// The whole entry is the single image file sitting next to this script.
-// This program's only job is to hand that image to the grader untouched:
-// it reads entry.png byte for byte and writes those same bytes into the
-// output directory, so what the judge opens is exactly what is in the repo.
-//
-// Where the copy goes:
-//   - inside the grader's container the output directory is /output;
-//   - anywhere else, point MAKEFUN_OUTPUT_DIR at a folder of your own:
-//       mkdir -p out && MAKEFUN_OUTPUT_DIR=out node main.ts
-//
-// Note the file's name is a formality: the bytes are JPEG (the gate
-// decides by the first bytes it sees, not by the extension), which is how
-// a 1920x1280 source fits under the 1 MiB cap once scaled.
+// Copies the entry image sitting next to this script into the output
+// folder, after checking that it is a real JPEG or PNG inside the
+// competition's size limits. Standard library only, no build step.
 
-import { mkdirSync, readFileSync, statSync, writeFileSync } from 'node:fs';
-import { join } from 'node:path';
+import { copyFileSync, existsSync, mkdirSync, readFileSync, statSync } from "node:fs";
+import { basename, dirname, join } from "node:path";
+import { fileURLToPath } from "node:url";
 
-// The gate's hard limit: an empty image, or anything over 1 MiB, is refused.
-const BYTE_LIMIT = 1048576;
-const FILE_NAME = 'entry.png';
+const MAX_BYTES = 1024 * 1024;
+const MAX_PIXELS = 1024;
+const IMAGE_NAME = "entry.png";
 
-// The destination folder: the grader's /output unless the caller says
-// otherwise through the environment.
-function resolveTargetDir(): string {
-  return process.env.MAKEFUN_OUTPUT_DIR ?? '/output';
+const JPEG_MAGIC = [0xff, 0xd8, 0xff];
+const PNG_MAGIC = [0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a];
+
+function fail(message: string): never {
+  throw new Error(`phoenix-rising: ${message}`);
 }
 
-// The image lives beside this script, whatever the working directory is.
-function locateEntry(): URL {
-  return new URL(`./${FILE_NAME}`, import.meta.url);
+function startsWith(bytes: Buffer, magic: number[]): boolean {
+  return magic.every((byte, index) => bytes[index] === byte);
 }
 
-// Refuse the image here, with a readable error, rather than handing the
-// grader a file it will reject on arrival.
-function loadEntry(entry: URL): Buffer {
-  const size = statSync(entry).size;
+// Reads the width and height the image itself declares in its header,
+// so a file whose pixels break the competition's limit is refused even
+// when its byte count and magic bytes look fine.
+function readDimensions(image: Buffer, isJpeg: boolean): { width: number; height: number } {
+  if (!isJpeg) {
+    // PNG: the IHDR chunk starts right after the 8-byte signature;
+    // width and height are the first two big-endian 32-bit words in it.
+    const width = image.readUInt32BE(16);
+    const height = image.readUInt32BE(20);
+    return { width, height };
+  }
+
+  // JPEG: walk the segments after the SOI marker until a start-of-frame
+  // marker (SOF0..SOF15, skipping the Huffman/arithmetic markers) gives
+  // the height then the width as big-endian 16-bit values.
+  let offset = 2;
+  while (offset + 9 < image.length) {
+    if (image[offset] !== 0xff) {
+      fail("malformed JPEG: expected a segment marker");
+    }
+    const marker = image[offset + 1];
+    const length = image.readUInt16BE(offset + 2);
+    if (marker >= 0xc0 && marker <= 0xcf && marker !== 0xc4 && marker !== 0xc8 && marker !== 0xcc) {
+      const height = image.readUInt16BE(offset + 5);
+      const width = image.readUInt16BE(offset + 7);
+      return { width, height };
+    }
+    offset += 2 + length;
+  }
+  fail("malformed JPEG: no start-of-frame segment found");
+}
+
+function main(): void {
+  const scriptDir = dirname(fileURLToPath(import.meta.url));
+  const sourcePath = join(scriptDir, IMAGE_NAME);
+
+  if (!existsSync(sourcePath)) {
+    fail(`source image not found: ${sourcePath}`);
+  }
+
+  const size = statSync(sourcePath).size;
   if (size === 0) {
-    throw new Error(`${FILE_NAME} is empty; there is no image to deliver`);
+    fail(`source image is empty: ${sourcePath}`);
   }
-  if (size > BYTE_LIMIT) {
-    throw new Error(
-      `${FILE_NAME} is ${size} bytes, over the gate's ${BYTE_LIMIT}-byte limit`,
-    );
+  if (size > MAX_BYTES) {
+    fail(`source image is ${size} bytes, over the ${MAX_BYTES} byte limit`);
   }
-  const bytes = readFileSync(entry);
-  // The gate tells PNG from JPEG by the first bytes, not the extension,
-  // so refuse anything that is neither before the grader sees it.
-  const isJpeg = bytes[0] === 0xff && bytes[1] === 0xd8 && bytes[2] === 0xff;
-  const isPng =
-    bytes[0] === 0x89 &&
-    bytes[1] === 0x50 &&
-    bytes[2] === 0x4e &&
-    bytes[3] === 0x47;
+
+  const image = readFileSync(sourcePath);
+  const isJpeg = startsWith(image, JPEG_MAGIC);
+  const isPng = startsWith(image, PNG_MAGIC);
   if (!isJpeg && !isPng) {
-    throw new Error(
-      `${FILE_NAME} is not a JPEG or PNG image ` +
-        `(first bytes: ${bytes.subarray(0, 4).toString('hex')})`,
-    );
+    fail("source image is neither JPEG nor PNG (unrecognised first bytes)");
   }
-  return bytes;
-}
 
-// Copy the image's bytes to the output directory, creating it if needed.
-function handOver(): void {
-  const image = loadEntry(locateEntry());
-  const targetDir = resolveTargetDir();
-  mkdirSync(targetDir, { recursive: true });
-  const target = join(targetDir, FILE_NAME);
-  writeFileSync(target, image);
-  // Prove the handover landed whole: the grader's two runs must agree
-  // byte for byte, so a short or torn write is caught here, not by it.
-  const written = readFileSync(target);
+  const { width, height } = readDimensions(image, isJpeg);
+  if (width > MAX_PIXELS || height > MAX_PIXELS) {
+    fail(`source image is ${width}x${height} pixels, over the ${MAX_PIXELS}x${MAX_PIXELS} limit`);
+  }
+
+  const outputDir = process.env.MAKEFUN_OUTPUT_DIR ?? "/output";
+  mkdirSync(outputDir, { recursive: true });
+
+  const targetPath = join(outputDir, basename(sourcePath));
+  copyFileSync(sourcePath, targetPath);
+
+  const written = readFileSync(targetPath);
   if (!written.equals(image)) {
-    throw new Error(
-      `${FILE_NAME} was not written whole: ${written.length} bytes on disk, ` +
-        `${image.length} bytes expected`,
-    );
+    fail(`written file differs from source: ${targetPath}`);
   }
-  console.log(`wrote ${FILE_NAME} (${image.length} bytes)`);
+
+  console.log(`Wrote ${targetPath} (${written.length} bytes)`);
 }
 
-handOver();
+main();
