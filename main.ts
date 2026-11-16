@@ -1,50 +1,59 @@
 // ai-excited-01 entry (Node 22, standard library only).
 //
-// The entry is the image file entry.png next to this script. The program
-// hands it to the grader unchanged: it copies those exact bytes to the
-// output directory, so the judge sees the same file that is in this repo.
+// The whole entry is the single image file sitting next to this script.
+// This program's only job is to hand that image to the grader untouched:
+// it reads entry.png byte for byte and writes those same bytes into the
+// output directory, so what the judge opens is exactly what is in the repo.
 //
-// The grader's container writes to /output. Outside it, set
-// MAKEFUN_OUTPUT_DIR to point the copy elsewhere:
-//   mkdir -p out && MAKEFUN_OUTPUT_DIR=out node main.ts
+// Where the copy goes:
+//   - inside the grader's container the output directory is /output;
+//   - anywhere else, point MAKEFUN_OUTPUT_DIR at a folder of your own:
+//       mkdir -p out && MAKEFUN_OUTPUT_DIR=out node main.ts
 //
-// The image is JPEG bytes that happen to be named entry.png; the gate reads
-// the file by its first bytes, not its extension.
+// Note the file's name is a formality: the bytes are JPEG (the gate
+// decides by the first bytes it sees, not by the extension), which is how
+// a 1920x1280 source fits under the 1 MiB cap once scaled.
 
-import { copyFileSync, mkdirSync, statSync } from 'node:fs';
+import { mkdirSync, readFileSync, statSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 
-const MAX_IMAGE_BYTES = 1048576;
-const IMAGE_NAME = 'entry.png';
+// The gate's hard limit: an empty image, or anything over 1 MiB, is refused.
+const BYTE_LIMIT = 1048576;
+const FILE_NAME = 'entry.png';
 
-function outputDir(): string {
+// The destination folder: the grader's /output unless the caller says
+// otherwise through the environment.
+function resolveTargetDir(): string {
   return process.env.MAKEFUN_OUTPUT_DIR ?? '/output';
 }
 
-function imagePath(): URL {
-  return new URL(`./${IMAGE_NAME}`, import.meta.url);
+// The image lives beside this script, whatever the working directory is.
+function locateEntry(): URL {
+  return new URL(`./${FILE_NAME}`, import.meta.url);
 }
 
-// The gate rejects an empty image and anything over 1 MiB, so check the
-// file here and fail with a clear message instead of handing the grader
-// a copy it will refuse.
-function checkImageSize(path: URL): number {
-  const bytes = statSync(path).size;
-  if (bytes === 0 || bytes > MAX_IMAGE_BYTES) {
+// Refuse the image here, with a readable error, rather than handing the
+// grader a file it will reject on arrival.
+function loadEntry(entry: URL): Buffer {
+  const size = statSync(entry).size;
+  if (size === 0) {
+    throw new Error(`${FILE_NAME} is empty; there is no image to deliver`);
+  }
+  if (size > BYTE_LIMIT) {
     throw new Error(
-      `${IMAGE_NAME} is ${bytes} bytes; the gate takes at most ${MAX_IMAGE_BYTES}`,
+      `${FILE_NAME} is ${size} bytes, over the gate's ${BYTE_LIMIT}-byte limit`,
     );
   }
-  return bytes;
+  return readFileSync(entry);
 }
 
-function deliver(): void {
-  const source = imagePath();
-  const bytes = checkImageSize(source);
-  const destination = join(outputDir(), IMAGE_NAME);
-  mkdirSync(outputDir(), { recursive: true });
-  copyFileSync(source, destination);
-  console.log(`wrote ${IMAGE_NAME} (${bytes} bytes)`);
+// Copy the image's bytes to the output directory, creating it if needed.
+function handOver(): void {
+  const image = loadEntry(locateEntry());
+  const targetDir = resolveTargetDir();
+  mkdirSync(targetDir, { recursive: true });
+  writeFileSync(join(targetDir, FILE_NAME), image);
+  console.log(`wrote ${FILE_NAME} (${image.length} bytes)`);
 }
 
-deliver();
+handOver();
