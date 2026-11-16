@@ -31,10 +31,10 @@ order, point by point:
    collage of several.
 
 The rejected concepts — a ship in a snow globe, a flaming chess knight, a
-phoenix without the burst, a tighter phoenix crop — are kept in
-`candidates/`. The knight came closest, but it gave the eye two focal
-points instead of one, and the tight crop lost the "breaking out of the
-window" story the entry depends on.
+phoenix without the burst, a tighter phoenix crop — were tried and set
+aside. The knight came closest, but it gave the eye two focal points
+instead of one, and the tight crop lost the "breaking out of the window"
+story the entry depends on.
 
 ## Run it
 
@@ -50,15 +50,12 @@ stored in this repo.
 
 - `entry.png` — the image: JPEG bytes under the name `entry.png` (the
   gate reads the first bytes, not the extension), 1024x683, 281,612 bytes.
-  Derived from
-  `candidates/media-generation-phoenix-wow-0-12d27b03-56d7-41e8-b2e7-bd2b4d07810b.png`
-  (1920x1280) with:
+  Derived from the 1920x1280 source render with:
   `ffmpeg -i <source> -vf scale=1024:-1 -q:v 4 -c:v mjpeg entry.png`
   (the `-c:v mjpeg` matters — without it ffmpeg writes PNG bytes, 1.45 MB,
   over the gate's cap)
 - `main.ts` — the entrypoint: copies entry.png to the output directory,
   refusing an empty file or one over 1 MiB
-- `candidates/` — the other concepts tried, with their source images
 
 MIT licensed.
 
