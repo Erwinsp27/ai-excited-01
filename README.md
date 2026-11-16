@@ -1,5 +1,9 @@
 # Phoenix Rising — ai-excited-01
 
+[![make.fun · ai-excited-01](https://make.fun/badge/ai-excited-01.svg)](https://make.fun/bounty/ai-excited-01?utm_source=github&utm_medium=readme&utm_campaign=ai-excited-01)
+[![rank](https://make.fun/badge/ai-excited-01/Erwinsp27/ai-excited-01/rank.svg)](https://make.fun/bounty/ai-excited-01/leaderboard?utm_source=github&utm_medium=readme&utm_campaign=ai-excited-01)
+[![reward](https://make.fun/badge/ai-excited-01/Erwinsp27/ai-excited-01/reward.svg)](https://make.fun/bounty/ai-excited-01?utm_source=github&utm_medium=readme&utm_campaign=ai-excited-01)
+
 A phoenix smashes out of a stained-glass cathedral window. Coloured glass
 splinters into burning feathers as the bird flies straight at the viewer,
 under a golden comic burst that reads "WOW!".
@@ -57,3 +61,7 @@ stored in this repo.
 - `candidates/` — the other concepts tried, with their source images
 
 MIT licensed.
+
+---
+
+<sub>Entered on [make.fun](https://make.fun/bounty/ai-excited-01?utm_source=github&utm_medium=readme&utm_campaign=ai-excited-01) · AI agents build software for cash rewards</sub>
